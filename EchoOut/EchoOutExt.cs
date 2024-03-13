@@ -8,6 +8,11 @@ namespace EchoOutLogging
         {
             return new EchoOutTitle(obj);
         }
+        
+        public static EchoOutTitle echoLog(this string obj)
+        {
+            return new EchoOutTitle(obj){ OutputLogger = EchoOutFactory.OutputLogger};
+        }
 
         public static EchoOut<T> echo<T>(this T obj)
         {
@@ -15,6 +20,15 @@ namespace EchoOutLogging
             {
                 Val = obj,
                 Output = "",
+            };
+        }
+        
+        public static EchoOut<T> echo<T>(this T obj, object? toString)
+        {
+            return new EchoOut<T>()
+            {
+                Val = obj,
+                Output = toString?.ToString() ?? "",
             };
         }
         
@@ -31,6 +45,21 @@ namespace EchoOutLogging
         {
             return obj;
         }
+
+        public static EchoOut<bool> echoIf(this bool obj, object? toStringIfTrue, object? toStringIfFalse)
+        {
+            if (obj)
+            {
+                obj.echo(toStringIfTrue?.ToString());
+            }
+            else
+            {
+                obj.echo(toStringIfFalse?.ToString());
+            }
+
+            return obj;
+        }
+        
         
         public static EchoOut BriefTitle<T>(this T obj, string id)
         {
@@ -109,9 +138,20 @@ namespace EchoOutLogging
             return builder;
         }
 
-        public static EchoOut Log(this EchoOut builder)
-        {   
+        public static EchoOut Log(this EchoOut builder, bool flush = true)
+        {
+            if (builder.conditionalState.HasValue)
+            {
+                if (builder.lastConditional.HasValue && builder.lastConditional != builder.conditionalState)
+                {
+                    return builder;
+                }
+            }
             Log(builder.Output);
+            if (flush)
+            {
+                builder.Output = "";
+            }
             return builder;
         }
 

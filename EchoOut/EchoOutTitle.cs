@@ -5,11 +5,12 @@ public class EchoOutTitle
     public string Output;
     public LhsConcatTitle LhsConcatTitle;
     public RhsConcatTitle RhsConcatTitle;
+    public EchoOutputLogger OutputLogger;
     public EchoOutTitle(string output)
     {
         LhsConcatTitle = EchoOutFactory.LhsConcatTitle;
         RhsConcatTitle = EchoOutFactory.RhsConcatTitle;
-        this.Output = output;
+        Output = output;
     }
     public static implicit operator EchoOutTitle(string title)
     {
@@ -20,6 +21,7 @@ public class EchoOutTitle
     {
         EchoOut o = EchoOutExt.echo(rhs);
         o.Output = outTitle.Output;
+        outTitle?.OutputLogger(outTitle.Output);
         var real = o.trueSelf();
         return real;
     }

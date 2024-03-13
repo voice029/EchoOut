@@ -316,6 +316,8 @@ public class EchoOut<T> : EchoOut
 
         return new EchoOut<bool>(result){Output = Output};
     }
+    
+    
 
     public override int GetHashCode()
     {
@@ -346,6 +348,74 @@ public class EchoOut<T> : EchoOut
         lhs.Output = rhs.RhsConcatTitle(lhs, rhs);
         return rhs;
     }
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="compare"></param>
+    /// <param name="toFormattedStringIfTrue"></param>
+    /// <param name="toFormattedStringIfFalse"></param>
+    /// <returns></returns>
+    public EchoOut<T> IfEq(T? compare, object? toFormattedStringIfTrue = null, object? toFormattedStringIfFalse = null)
+    {
+        if (Val?.Equals(null) == true && compare?.Equals(null) == true || !Val?.Equals(null) == true && Val!.Equals(compare))
+        {
+            lastConditional = true;
+            if (toFormattedStringIfTrue?.ToString() != null)
+            {
+                Output += String.Format(toFormattedStringIfTrue?.ToString(), Val, compare);
+            }
+        }
+        else
+        {
+            lastConditional = false;
+            
+            if (toFormattedStringIfFalse?.ToString() != null)
+            {
+                Output += String.Format(toFormattedStringIfTrue?.ToString(), Val, compare);
+            }        
+        }
+
+        return this;
+    }
+
+    public EchoOut<T> True()
+    {
+        //TODO get this working right
+        if (!lastConditional.HasValue)
+            throw new Exception();
+        
+        conditionalState = true;
+        return this;
+    }
+    
+    public EchoOut<T> False()
+    {
+        //TODO get this working right
+
+        if (!lastConditional.HasValue)
+            throw new Exception();
+        
+        conditionalState = false;
+        return this;
+    }
+    
+    public EchoOut<T> If(Func<T?, bool> func, object? toFormattedStringIfTrue,
+        object? toFormattedStringIfFalse = null)
+    {
+        if (func(Val))
+        {
+            Output += String.Format(toFormattedStringIfTrue?.ToString(), Val);
+            lastConditional = true;
+        }
+        else
+        {
+            Output += String.Format(toFormattedStringIfFalse?.ToString(), Val);
+            lastConditional = false;
+        }
+
+        return this;
+    }
 }
 
 public class EchoOut
@@ -365,6 +435,8 @@ public class EchoOut
     public EchoOutputLogger OutputLogger;
     public ConcatMathOp ConcatMathOp;
     public ValueToOutput ValueToOutput;
+    public bool? lastConditional;
+    public bool? conditionalState;
 
     public virtual dynamic trueSelf() => this;
 }

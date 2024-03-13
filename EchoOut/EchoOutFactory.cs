@@ -27,9 +27,9 @@ public class EchoOutFactory
         Console.WriteLine(output);
     }
     
-    private static string DefaultConcatMathOp(EchoOut? lhs, EchoOut rhs, dynamic? c, int counter, string opSign)
+    private static string DefaultConcatMathOp(EchoOut lhs, EchoOut? rhs, dynamic? c, int counter, string opSign)
     {
-        return $"{lhs?.Output}{counter}[{lhs?.Val}{opSign}{rhs.Val} = {c}] {rhs.Output}";
+        return $"{lhs?.Output}{counter}[{lhs?.Val}{opSign}{rhs?.Val} = {c}] {rhs?.Output}";
     }
     
     private static string DefaultLhsConcatTitle(EchoOutTitle lhs, EchoOut rhs)

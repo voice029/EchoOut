@@ -9,6 +9,7 @@ int someV2 = 100;
 // bool test = 30 < 20.echo();
 // Console.WriteLine(test);
 int test2 = 20;
-int test3 = -test2.echo() + 20;
+// int test3 = -test2.echo() + 20;
 
 
+test2.echo("test 2 ").IfEq(20).True().Log(false).echo("more strings").Log();
