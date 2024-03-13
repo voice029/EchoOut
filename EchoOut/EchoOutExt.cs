@@ -18,6 +18,15 @@ namespace EchoOutLogging
             };
         }
         
+        public static EchoOut<int> echo(this int obj)
+        {
+            return new EchoOut<int>()
+            {
+                Val = obj,
+                Output = "",
+            };
+        }
+        
         public static EchoOut<T> echo<T>(EchoOut<T> obj)
         {
             return obj;

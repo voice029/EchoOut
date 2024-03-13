@@ -2,6 +2,11 @@ namespace EchoOutLogging;
 
 public class EchoOut<T> : EchoOut
 {
+    public EchoOut(){}
+    public EchoOut(dynamic value)
+    {
+        Val = value;
+    }
     public override dynamic trueSelf() => this;
         
     public static implicit operator T?(EchoOut<T> rhs)
@@ -12,6 +17,10 @@ public class EchoOut<T> : EchoOut
 
     private void AssignmentOpLog(EchoOut<T> rhs)
     {
+        if (string.IsNullOrWhiteSpace(rhs.Output))
+        {
+            rhs.Output = $"{Val}";
+        }
         OutputLogger?.Invoke(rhs.Output);
     }
 
@@ -22,7 +31,6 @@ public class EchoOut<T> : EchoOut
 
     public static implicit operator EchoOut<T>(T rhs)
     {
-        
         var echoOut = new EchoOut<T>(){Val = rhs};
         echoOut.OutputConversion(rhs);
         return echoOut;
@@ -47,7 +55,26 @@ public class EchoOut<T> : EchoOut
          *
          * x == y, x != y, x < y, x > y, x <= y, x >= y
          */
-        
+
+    private static dynamic doUnarySub(dynamic arg1, dynamic arg2) => -arg2;
+    
+    private static dynamic doUnaryAdd(dynamic arg1, dynamic arg2) => +arg2;
+
+    private static dynamic doInvert(dynamic arg1, dynamic arg2) => ~arg2;
+
+    private static dynamic doInc(dynamic arg1, dynamic arg2) => ++arg2;
+
+    private static dynamic doDec(dynamic arg1, dynamic arg2) => --arg2;
+    
+    private static dynamic doNot(dynamic arg1, dynamic arg2) => !arg2;
+
+
+    private static dynamic doBitwiseAnd(dynamic arg1, dynamic arg2) => arg1 & arg2;
+    private static dynamic doBitwiseOr(dynamic arg1, dynamic arg2) => arg1 | arg2;
+    private static dynamic doBitwiseBitShiftLeft(dynamic arg1, dynamic arg2) => arg1 << arg2;
+    private static dynamic doBitwiseBitShiftRight(dynamic arg1, dynamic arg2) => arg1 >> arg2;
+    private static dynamic doXor(dynamic arg1, dynamic arg2) => arg1 ^ arg2;
+    // private static dynamic doBitwiseBitUnsignedShiftRight(dynamic arg1, dynamic arg2) => arg1 >>> arg2;
     private static dynamic doAdd(dynamic arg1, dynamic arg2) => arg1 + arg2;
     private static dynamic doSub(dynamic arg1, dynamic arg2) => arg1 - arg2;
     private static dynamic doMul(dynamic arg1, dynamic arg2) => arg1 * arg2;
@@ -60,12 +87,13 @@ public class EchoOut<T> : EchoOut
     private static dynamic doGreaterThan(dynamic arg1, dynamic arg2) => arg1 > arg2;
     private static dynamic doEqLessThan(dynamic arg1, dynamic arg2) => arg1 <= arg2;
     private static dynamic doEqGreaterThan(dynamic arg1, dynamic arg2) => arg1 >= arg2;
-    private static dynamic MathOp(EchoOut lhs, EchoOut rhs, string opSign, Func<dynamic, dynamic, dynamic> doOp)
+
+    private static dynamic MathOp(EchoOut? lhs, EchoOut rhs, string opSign, Func<dynamic, dynamic, dynamic> doOp)
     {
-        dynamic c = doOp(lhs.Val, rhs.Val);
+        dynamic c = doOp(lhs?.Val, rhs.Val);
         EchoOut o = EchoOutExt.echo(c);
-        o.Counter = lhs.Counter + rhs.Counter + 1;
-        o.Output = lhs?.ConcatMathOp?.Invoke(lhs, rhs, c, o.Counter, opSign) ?? "VALUE";
+        o.Counter = lhs?.Counter ?? 0 + rhs.Counter + 1;
+        o.Output = rhs?.ConcatMathOp?.Invoke(lhs, rhs, c, o.Counter, opSign) ?? "VALUE";
         return o;
     }
         
@@ -184,18 +212,109 @@ public class EchoOut<T> : EchoOut
         var operationResult = MathOp(lhs, rhs, "==", doEq);
         return operationResult;
     }
+
+    public static dynamic operator &(EchoOut<T> lhs, EchoOut rhs)
+    {
+        var operationResult = MathOp(lhs, rhs, "&", doBitwiseAnd);
+        return operationResult;
+    }
     
+    public static dynamic operator &(EchoOut lhs, EchoOut<T> rhs)
+    {
+        var operationResult = MathOp(lhs, rhs, "&", doBitwiseAnd);
+        return operationResult;
+    }
+
+    public static dynamic operator |(EchoOut<T> lhs, EchoOut rhs)
+    {
+        var operationResult = MathOp(lhs, rhs, "|", doBitwiseOr);
+        return operationResult;
+    }
+    
+    public static dynamic operator |(EchoOut lhs, EchoOut<T>  rhs)
+    {
+        var operationResult = MathOp(lhs, rhs, "|", doBitwiseOr);
+        return operationResult;
+    }
+    
+    public static dynamic operator ^(EchoOut<T> lhs, EchoOut rhs)
+    {
+        var operationResult = MathOp(lhs, rhs, "^", doXor);
+        return operationResult;
+    }
+    
+    public static dynamic operator ^(EchoOut lhs, EchoOut<T>  rhs)
+    {
+        var operationResult = MathOp(lhs, rhs, "^", doXor);
+        return operationResult;
+    }
+    
+    public static dynamic operator <<(EchoOut<T> lhs, EchoOut rhs)
+    {
+        var operationResult = MathOp(lhs, rhs, "<<", doBitwiseBitShiftLeft);
+        return operationResult;
+    }
+    
+    public static dynamic operator >>(EchoOut<T> lhs, EchoOut rhs)
+    {
+        var operationResult = MathOp(lhs, rhs, ">>", doBitwiseBitShiftRight);
+        return operationResult;
+    }
+
+    public static dynamic operator +(EchoOut<T> rhs)
+    {
+        var operationResult = MathOp(null, rhs, "+", doUnaryAdd);
+        return operationResult;
+    }
+    
+    public static dynamic operator !(EchoOut<T> rhs)
+    {
+        var operationResult = MathOp(null, rhs, "!", doNot);
+        return operationResult;
+    }
+
+    public static dynamic operator -(EchoOut<T> rhs)
+    {
+        var operationResult = MathOp(null, rhs, "-", doUnarySub);
+        return operationResult;
+    }
+
+    public static EchoOut<T> operator ++(EchoOut<T> rhs)
+    {
+        var operationResult = MathOp(null, rhs, "++", doInc);
+        return operationResult;
+    }
+    
+    public static EchoOut<T> operator --(EchoOut<T> rhs)
+    {
+        var operationResult = MathOp(null, rhs, "--", doDec);
+        return operationResult;
+    }
+
+    public static dynamic operator ~(EchoOut<T> rhs)
+    {
+        var operationResult = MathOp(null, rhs, "~", doDec);
+        return operationResult;
+    }
+
     public override bool Equals(object? obj)
     {
         dynamic result = false;
-        if (obj is EchoOut<T> other)
+        switch (obj)
         {
-            // TODO be sure this is working
-            result = MathOp(this, other, "Equals", doEqual);
-            return Val?.Equals(other.Val) ?? false;
+            case null:
+                Output = ConcatMathOp(this, null, false, ++Counter, "Equals");
+                break;
+            case EchoOut other:
+                result = MathOp(this, other, "Equals", doEqual);
+                break;
+            default:
+                result = obj.Equals(Val);
+                Output = ConcatMathOp(this, new EchoOut<dynamic>(obj), result, ++Counter, "Equals");
+                break;
         }
 
-        return result;
+        return new EchoOut<bool>(result){Output = Output};
     }
 
     public override int GetHashCode()
@@ -227,8 +346,6 @@ public class EchoOut<T> : EchoOut
         lhs.Output = rhs.RhsConcatTitle(lhs, rhs);
         return rhs;
     }
-    
-
 }
 
 public class EchoOut

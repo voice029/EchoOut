@@ -1,6 +1,6 @@
 namespace EchoOutLogging;
 public delegate void EchoOutputLogger(string? output);
-public delegate string ConcatMathOp(EchoOut lhs, EchoOut rhs, dynamic c, int counter, string opSign);
+public delegate string ConcatMathOp(EchoOut? lhs, EchoOut rhs, dynamic? c, int counter, string opSign);
 public delegate string LhsConcatTitle(EchoOutTitle lhs, EchoOut rhs);
 public delegate string RhsConcatTitle(EchoOut lhs, EchoOutTitle rhs);
 public delegate string ValueToOutput(dynamic? val);
@@ -27,9 +27,9 @@ public class EchoOutFactory
         Console.WriteLine(output);
     }
     
-    private static string DefaultConcatMathOp(EchoOut lhs, EchoOut rhs, dynamic c, int counter, string opSign)
+    private static string DefaultConcatMathOp(EchoOut? lhs, EchoOut rhs, dynamic? c, int counter, string opSign)
     {
-        return $"{lhs.Output}{counter}( {lhs.Val} {opSign} {rhs.Val} = {c} ) {rhs.Output}";
+        return $"{lhs?.Output}{counter}[{lhs?.Val}{opSign}{rhs.Val} = {c}] {rhs.Output}";
     }
     
     private static string DefaultLhsConcatTitle(EchoOutTitle lhs, EchoOut rhs)
