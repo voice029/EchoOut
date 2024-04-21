@@ -1,43 +1,18 @@
-﻿using EchoOutLogging;
+﻿using System;
+using VoiceOut.EchoOutClasses;
 
-namespace EchoOutLogging
+namespace VoiceOut.EchoOutExt
 {
+
+    
     public static class EchoOutExt
     {
-        public static EchoOutTitle echo(this string obj)
+        public static EchoOut<T> echo<T>(this T obj, object toString)
         {
-            return new EchoOutTitle(obj);
-        }
-        
-        public static EchoOutTitle echoLog(this string obj)
-        {
-            return new EchoOutTitle(obj){ OutputLogger = EchoOutFactory.OutputLogger};
-        }
-
-        public static EchoOut<T> echo<T>(this T obj)
-        {
-            return new EchoOut<T>()
+            return new EchoOut<T>(obj)
             {
-                Val = obj,
-                Output = "",
-            };
-        }
-        
-        public static EchoOut<T> echo<T>(this T obj, object? toString)
-        {
-            return new EchoOut<T>()
-            {
-                Val = obj,
+                // Val = obj,
                 Output = toString?.ToString() ?? "",
-            };
-        }
-        
-        public static EchoOut<int> echo(this int obj)
-        {
-            return new EchoOut<int>()
-            {
-                Val = obj,
-                Output = "",
             };
         }
         
@@ -46,7 +21,7 @@ namespace EchoOutLogging
             return obj;
         }
 
-        public static EchoOut<bool> echoIf(this bool obj, object? toStringIfTrue, object? toStringIfFalse)
+        public static EchoOut<bool> echoIf(this bool obj, object toStringIfTrue, object toStringIfFalse)
         {
             if (obj)
             {
@@ -61,30 +36,20 @@ namespace EchoOutLogging
         }
         
         
-        public static EchoOut BriefTitle<T>(this T obj, string id)
-        {
-            return new EchoOut()
-            {
-                Val = obj,
-                Output = id,
-                Id = id
-            };
-        }
-        
-        public static EchoOut Type(this EchoOut builder)
+        public static EchoOut<T> Type<T>(this EchoOut<T> builder)
         {
             return builder;
         }
 
-        public static EchoOut Get<T>(this EchoOut builder, Func<T, string> getStr)
+        public static EchoOut<T> Get<T>(this EchoOut<T> builder, Func<T, string> getStr)
         {
             builder.Output += getStr(builder.Val);
             return builder;
         }
 
-        public static EchoOut Eq<T, T2>(this EchoOut builder, T2 target, string ifTrue)
+        public static EchoOut<T> Eq<T, T2>(this EchoOut<T> builder, T2 target, string ifTrue)
         {
-            if (builder.Val != null && builder.Val?.Equals(target) == true)
+            if (builder.Val != null && builder.Val == target)
             {
                 // builder.lastSuccCompare = 0;
                 builder.Output += ifTrue;
@@ -93,19 +58,26 @@ namespace EchoOutLogging
             return builder;
         }
 
-        public static EchoOut Less<T, T2>(this EchoOut builder, T2 target, string ifTrue)
+        public static EchoOut<T> Less<T, T2>(this EchoOut<T> builder, T2 target, string ifTrue)
             where T : IComparable<T2>
         {
             if (builder.Val?.CompareTo(target) < 0)
             {
-                // builder.lastSuccCompare = -1;
                 builder.Output += ifTrue;
             }
+            // if (builder.Val is IComparable comparable)
+            // {
+            //     if (comparable.CompareTo(target) < 0)
+            //     {
+            //         builder.Output += ifTrue;
+            //     }
+            // }
+
 
             return builder;
         }
 
-        public static EchoOut Greater<T, T2>(this EchoOut builder, T2 target, string ifTrue)
+        public static EchoOut<T> Greater<T, T2>(this EchoOut<T> builder, T2 target, string ifTrue)
             where T : IComparable<T2>
         {
             if (builder.Val?.CompareTo(target) > 0)
@@ -116,7 +88,7 @@ namespace EchoOutLogging
             return builder;
         }
 
-        public static EchoOut IfTrue(this EchoOut builder, string ifTrue)
+        public static EchoOut<T> IfTrue<T>(this EchoOut<T> builder, string ifTrue)
         {
             if (builder.Val)
             {
@@ -126,19 +98,19 @@ namespace EchoOutLogging
             return builder;
         }
 
-        public static EchoOut Concat(this EchoOut builder, string concat)
+        public static EchoOut<T> Concat<T>(this EchoOut<T> builder, string concat)
         {
             builder.Output += concat;
             return builder;
         }
 
-        public static EchoOut Format(this EchoOut builder, string format)
+        public static EchoOut<T> Format<T>(this EchoOut<T> builder, string format)
         {
             builder.Output += String.Format(format, builder.Val);
             return builder;
         }
 
-        public static EchoOut Log(this EchoOut builder, bool flush = true)
+        public static EchoOut<T> Log<T>(this EchoOut<T> builder, bool flush = true)
         {
             if (builder.conditionalState.HasValue)
             {
@@ -155,7 +127,7 @@ namespace EchoOutLogging
             return builder;
         }
 
-        public static void Log(object? obj)
+        public static void Log(object obj)
         {
             Console.WriteLine(obj?.ToString());
         }
