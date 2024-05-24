@@ -1,6 +1,7 @@
 ﻿using System;
 using Xunit;
 
+
 namespace UnitText
 {
     public class Tests
@@ -8,6 +9,7 @@ namespace UnitText
         [Fact]
         public void Test1()
         {
+            int val = 
             Assert.True(true);
         }
     }

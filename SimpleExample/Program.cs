@@ -82,24 +82,7 @@ using VoiceOut.EchoOutExtStarter;
 //     }
 // }
 
-int val = 2;
-int log = val.echo();
-    
-
-
-public class EchoCustom<T> : EchoOut<T>
-{
-    public EchoCustom() {}
-
-    public EchoCustom(T aVal) : base(aVal) { }
-
-    public static implicit operator EchoCustom<T>(T val)
-    {
-        return new EchoCustom<T>(val);
-    }
-}
-
-
+int val = 2.echo() + 2;
 
 public interface IFactory
 {

@@ -3,7 +3,6 @@ using VoiceOut.EchoOutClasses;
 
 namespace VoiceOut.EchoOutExt
 {
-
     
     public static class EchoOutExt
     {
@@ -38,6 +37,7 @@ namespace VoiceOut.EchoOutExt
         
         public static EchoOut<T> Type<T>(this EchoOut<T> builder)
         {
+            builder.Output += typeof(T) + " ";
             return builder;
         }
 
@@ -65,15 +65,7 @@ namespace VoiceOut.EchoOutExt
             {
                 builder.Output += ifTrue;
             }
-            // if (builder.Val is IComparable comparable)
-            // {
-            //     if (comparable.CompareTo(target) < 0)
-            //     {
-            //         builder.Output += ifTrue;
-            //     }
-            // }
-
-
+            
             return builder;
         }
 
@@ -112,9 +104,9 @@ namespace VoiceOut.EchoOutExt
 
         public static EchoOut<T> Log<T>(this EchoOut<T> builder, bool flush = true)
         {
-            if (builder.conditionalState.HasValue)
+            if (builder.conditionalPrintState.HasValue)
             {
-                if (builder.lastConditional.HasValue && builder.lastConditional != builder.conditionalState)
+                if (builder.conditionalPrintVal.HasValue && builder.conditionalPrintVal != builder.conditionalPrintState)
                 {
                     return builder;
                 }

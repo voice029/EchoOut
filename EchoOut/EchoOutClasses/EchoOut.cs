@@ -2,7 +2,7 @@ using System;
 
 namespace VoiceOut.EchoOutClasses
 {
-    public class EchoOut<T> : EchoOut
+    public class EchoOut<T> : EchoOut, IEchoOutIfOptions<T>, IEchoOutBranchOptions<T>
     {
         public EchoOut(){}
 
@@ -101,15 +101,30 @@ namespace VoiceOut.EchoOutClasses
         private static dynamic doEqLessThan(dynamic arg1, dynamic arg2) => arg1 <= arg2;
         private static dynamic doEqGreaterThan(dynamic arg1, dynamic arg2) => arg1 >= arg2;
 
+        public interface ICreateNewEchoOut
+        {
+            EchoOut<T2> NewEchoOut<T2>(T2 value);
+        }
+
+        private class MyCreateNewEchoOut : ICreateNewEchoOut
+        {
+            public EchoOut<T2> NewEchoOut<T2>(T2 value)
+            {
+                return new EchoOut<T2>(value);
+            }
+        }
+
+        public static ICreateNewEchoOut CreateNewEchoOut { get; set; } = new MyCreateNewEchoOut();
+        
         private static dynamic MathOp<T1, T2>(T1 lhs, T2 rhs, string opSign, Func<dynamic, dynamic, dynamic> doOp) 
             where T1: EchoOut, new() 
             where T2: EchoOut, new()
         {
             dynamic c = doOp(lhs?.Val, rhs.Val);
-            EchoOut o = new T1();
+            var o = CreateNewEchoOut.NewEchoOut(c);
             o.Val = c;
-            o.Counter = lhs?.Counter ?? 0 + rhs.Counter + 1;
-            o.Output = rhs?.ConcatMathOp?.Invoke(lhs, rhs, c, o.Counter, opSign) ?? "VALUE";
+            o.Counter = (lhs?.Counter ?? 0) + rhs.Counter + 1;
+            o.Output = rhs?.ConcatMathOp?.Invoke(lhs, rhs, c, o.Counter, opSign, PrintOutOrder) ?? "VALUE";
             return o;
         }
 
@@ -289,7 +304,7 @@ namespace VoiceOut.EchoOutClasses
             return operationResult;
         }
         
-        public static dynamic operator >> (EchoOut<T> lhs, int rhs)
+        public static dynamic operator >>(EchoOut<T> lhs, int rhs)
         {
             var operationResult = MathOp(lhs, new EchoOut(rhs), ">>", doBitwiseBitShiftRight);
             return operationResult;
@@ -331,20 +346,22 @@ namespace VoiceOut.EchoOutClasses
             return operationResult;
         }
 
+        public static PrintOutOrder PrintOutOrder;
+        
         public override bool Equals(object obj)
         {
             dynamic result = false;
             switch (obj)
             {
                 case null:
-                    Output = ConcatMathOp(this, null, false, ++Counter, "Equals");
+                    Output = ConcatMathOp(this, null, false, ++Counter, "Equals", PrintOutOrder);
                     break;
                 case EchoOut other:
                     result = MathOp(this, other, "Equals", doEqual);
                     break;
                 default:
                     result = obj.Equals(Val);
-                    Output = ConcatMathOp(this, new EchoOut<dynamic>(obj), result, ++Counter, "Equals");
+                    Output = ConcatMathOp(this, new EchoOut<dynamic>(obj), result, ++Counter, "Equals", PrintOutOrder);
                     break;
             }
 
@@ -354,7 +371,7 @@ namespace VoiceOut.EchoOutClasses
         public override int GetHashCode() 
         {
             // TODO make a custom logger for this
-            return Val?.GetHashCode() ?? 0;
+            return Val.GetHashCode() ?? 0;
         }
 
         public static dynamic operator !=(EchoOut lhs, EchoOut<T> rhs)
@@ -394,7 +411,7 @@ namespace VoiceOut.EchoOutClasses
             if (Val?.Equals(null) == true && compare?.Equals(null) == true ||
                 !Val?.Equals(null) == true && Val.Equals(compare))
             {
-                lastConditional = true;
+                conditionalPrintVal = true;
                 if (toFormattedStringIfTrue?.ToString() != null)
                 {
                     Output += String.Format(toFormattedStringIfTrue?.ToString(), Val, compare);
@@ -402,7 +419,7 @@ namespace VoiceOut.EchoOutClasses
             }
             else
             {
-                lastConditional = false;
+                conditionalPrintVal = false;
 
                 if (toFormattedStringIfFalse?.ToString() != null)
                 {
@@ -412,26 +429,11 @@ namespace VoiceOut.EchoOutClasses
 
             return this;
         }
+        
 
-        public EchoOut<T> True()
+        private bool ShouldPrint()
         {
-            //TODO get this working right
-            if (!lastConditional.HasValue)
-                throw new Exception();
-
-            conditionalState = true;
-            return this;
-        }
-
-        public EchoOut<T> False()
-        {
-            //TODO get this working right
-
-            if (!lastConditional.HasValue)
-                throw new Exception();
-
-            conditionalState = false;
-            return this;
+            return !conditionalPrintVal.HasValue || conditionalPrintVal.HasValue && conditionalPrintVal.Value == conditionalPrintState;
         }
 
         public EchoOut<T> If(Func<T, bool> func, object toFormattedStringIfTrue,
@@ -440,17 +442,69 @@ namespace VoiceOut.EchoOutClasses
             if (func(Val))
             {
                 Output += String.Format(toFormattedStringIfTrue?.ToString(), Val);
-                lastConditional = true;
+                conditionalPrintVal = true;
             }
             else
             {
                 Output += String.Format(toFormattedStringIfFalse?.ToString(), Val);
-                lastConditional = false;
+                conditionalPrintVal = false;
             }
 
             return this;
         }
+
+        public EchoOut<T> IfEq(T compare)
+        {
+            conditionalPrintVal = Val.CompareTo(compare) == 0;
+            return this;
+        }
+
+        public EchoOut<T> IfLess(T compare)
+        {
+            conditionalPrintVal = Val.CompareTo(compare) < 0;
+            return this;
+        }
+        
+        public EchoOut<T> IfGreater(T compare)
+        {
+            conditionalPrintVal = Val.CompareTo(compare) > 0;
+            return this;
+        }
+        
+        public EchoOut<T> IfLessEq(T compare)
+        {
+            conditionalPrintVal = Val.CompareTo(compare) <= 0;
+            return this;
+        }
+        
+        public EchoOut<T> IfGreaterEq(T compare)
+        {
+            conditionalPrintVal = Val.CompareTo(compare) >= 0;
+            return this;
+        }
+
+        public IEchoOutBranchOptions<T> True()
+        {
+            if (!conditionalPrintVal.HasValue)
+                throw new Exception();
+            
+            conditionalPrintState = true;
+            return this;
+        }
+
+        public IEchoOutBranchOptions<T> False()
+        {
+            
+            if (!conditionalPrintVal.HasValue)
+                throw new Exception();
+            
+            conditionalPrintState = false;
+            return this;
+        }
+        
+        
     }
+
 
     public struct EchoOutputMethods
     {
@@ -472,6 +526,9 @@ namespace VoiceOut.EchoOutClasses
             _outputMethods.LeftHandSide = EchoOutFactory.LhsConcatTitle;
             _outputMethods.RightHandSide = EchoOutFactory.RhsConcatTitle;
         }
+        
+        public virtual dynamic trueSelf() => this;
+
 
         public EchoOut(dynamic val)
         {
@@ -514,10 +571,9 @@ namespace VoiceOut.EchoOutClasses
             set => _outputMethods.RightHandSide = value;
         }
 
-        public bool? lastConditional;
-        public bool? conditionalState;
-
-        public virtual dynamic trueSelf() => this;
+        public bool? conditionalPrintVal;
+        public bool? conditionalPrintState;
 
     }
+
 }

@@ -12,6 +12,19 @@ namespace VoiceOut.EchoOutExtStarter
                 Output = "",
             };
         }
+        
+        public static EchoOut<T> echo<T>(this T obj, object toString)
+        {
+            return new EchoOut<T>(obj)
+            {
+                Output = toString?.ToString() ?? "",
+            };
+        }
+        
+        public static EchoOut<T> echo<T>(EchoOut<T> obj)
+        {
+            return obj;
+        }
 
     }
 }

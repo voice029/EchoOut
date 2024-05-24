@@ -6,14 +6,14 @@ namespace VoiceOut
 {
     public delegate void EchoOutputLogger(string output);
 
-    public delegate string ConcatMathOp(EchoOut lhs, EchoOut rhs, dynamic c, int counter, string opSign);
+    public delegate string ConcatMathOp(EchoOut lhs, EchoOut rhs, dynamic c, int counter, string opSign, PrintOutOrder printOrder);
 
     public delegate string LhsConcatTitle(EchoOutTitle lhs, EchoOut rhs);
 
     public delegate string RhsConcatTitle(EchoOut lhs, EchoOutTitle rhs);
 
     public delegate string ValueToOutput(dynamic val);
-
+    
     public class EchoOutFactory
     {
         // TODO more work on how to setup the factory
@@ -23,7 +23,7 @@ namespace VoiceOut
         {
             DefaultCalls = calls;
         }
-
+        
         public static EchoOutputLogger OutputLogger { get; set; } =
             DefaultCalls?.DefaultOutputLogger() ?? DefaultOutputLogger;
 
@@ -38,6 +38,7 @@ namespace VoiceOut
 
         public static ValueToOutput ValueToOutput { get; set; } =
             DefaultCalls?.DefaultValueToOutput() ?? DefaultValueToOutput;
+        
 
 
 
@@ -51,9 +52,17 @@ namespace VoiceOut
             Console.WriteLine(output);
         }
 
-        private static string DefaultConcatMathOp(EchoOut lhs, EchoOut rhs, dynamic c, int counter, string opSign)
+        private static string DefaultConcatMathOp(EchoOut lhs, EchoOut rhs, dynamic c, int counter, string opSign, PrintOutOrder printOutOrder)
         {
-            return $"{lhs?.Output}{counter}[{lhs?.Val}{opSign}{rhs?.Val} = {c}] {rhs?.Output}";
+            switch (printOutOrder)
+            {
+                case PrintOutOrder.MatchTerms:
+                    return $"{lhs?.Output}{counter}[{lhs?.Val}{opSign}{rhs?.Val} = {c}] {rhs?.Output}";
+                case PrintOutOrder.Sequential:
+                    return $"{lhs?.Output} {rhs?.Output}{counter}[{lhs?.Val}{opSign}{rhs?.Val} = {c}] ";
+                default: 
+                    return $"{lhs?.Output} {rhs?.Output}{counter}[{lhs?.Val}{opSign}{rhs?.Val} = {c}] ";
+            }
         }
 
         private static string DefaultLhsConcatTitle(EchoOutTitle lhs, EchoOut rhs)
@@ -95,8 +104,6 @@ namespace VoiceOut
             return aDefaultValueToOutput;
         }
 
-
-
         private string aDefaultRhsConcatTitle(EchoOut lhs, EchoOutTitle rhs)
         {
 
@@ -108,9 +115,15 @@ namespace VoiceOut
             Console.WriteLine(output);
         }
 
-        private string aDefaultConcatMathOp(EchoOut lhs, EchoOut rhs, object c, int counter, string opSign)
+        private string aDefaultConcatMathOp(EchoOut lhs, EchoOut rhs, object c, int counter, string opSign, PrintOutOrder printOrder)
         {
-            return $"{lhs?.Output}{counter}[{lhs?.Val}{opSign}{rhs?.Val} = {c}] {rhs?.Output}";
+            switch (printOrder)
+            {
+                case PrintOutOrder.MatchTerms:
+                    return $"{lhs?.Output}{counter}[{lhs?.Val}{opSign}{rhs?.Val} = {c}] {rhs?.Output}";
+                default: // PrintOutOrder.Sequential
+                    return $"{lhs?.Output}{rhs?.Output}{counter}[{lhs?.Val}{opSign}{rhs?.Val} = {c}] ";
+            }
         }
 
         private string aDefaultLhsConcatTitle(EchoOutTitle lhs, EchoOut rhs)
@@ -122,5 +135,6 @@ namespace VoiceOut
         {
             return $"{val}";
         }
+        
     }
 }
